@@ -1,56 +1,53 @@
-ymaps.ready(init);
-
-function init() {
+ymaps.ready(function () {
     var myMap = new ymaps.Map('map', {
-            center: [59.310163425336704, 24.424535824046995],// Кейла
-            zoom: 18,
-            controls: ['zoomControl']
+            center: [59.31014623775491, 24.424535881434334],
+            zoom: 17
+        }, {
+            searchControlProvider: 'yandex#search'
         }),
-        gpxButton = $('.load-gpx'),
-        kmlButton = $('.load-kml'),
-        kmlFlightsButton = $('.load-kml-flights');
 
-    // Отключение кеширования атрибута disabled в Firefox.
-    gpxButton.get(0).disabled = false;
-    kmlButton.get(0).disabled = false;
-    kmlFlightsButton.get(0).disabled = false;
+        // Создаём макет содержимого.
+        MyIconContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<div style="color: #FFFFFF; font-weight: bold;">$[properties.iconContent]</div>'
+        ),
 
-    // При нажатии на кнопку загружаем соответствующий XML-файл
-    // и отображаем его данные на карте.
-    gpxButton.click(function (e) {
-        ymaps.geoXml.load('geoObjects.gpx')
-            .then(onGeoXmlLoad);
-        e.target.disabled = true;
-    });
-    kmlButton.click(function (e) {
-        ymaps.geoXml.load('geoObjects.kml')
-            .then(onGeoXmlLoad);
-        e.target.disabled = true;
-    });
-    kmlFlightsButton.click(function (e) {
-        ymaps.geoXml.load('http://openflights.org/demo/openflights-sample.kml')
-            .then(function (res) {
-                res.geoObjects.each(function (obj) {
-                    obj.options.set({preset: 'islands#blackCircleIcon'});
-                    if (!obj.geometry) {
-                        obj.each(function (obj) {
-                            obj.options.set({strokeColor: "9090e8"});
-                        });
-                    }
-                });
-                onGeoXmlLoad(res);
-            });
-        e.target.disabled = true;
-    });
+        myPlacemark = new ymaps.Placemark(myMap.getCenter(), {
+            hintContent: 'Собственный значок метки',
+            balloonContent: 'Это красивая метка'
+        }, {
+            // Опции.
+            // Необходимо указать данный тип макета.
+            iconLayout: 'default#image',
+            // Своё изображение иконки метки.
+            iconImageHref: 'images/myIcon.gif',
+            // Размеры метки.
+            iconImageSize: [30, 42],
+            // Смещение левого верхнего угла иконки относительно
+            // её "ножки" (точки привязки).
+            iconImageOffset: [-5, -38]
+        }),
 
-    // Обработчик загрузки XML-файлов.
-    function onGeoXmlLoad(res) {
-        myMap.geoObjects.add(res.geoObjects);
-        if (res.mapState) {
-            res.mapState.applyToMap(myMap);
-        }
-        else {
-            myMap.setBounds(res.geoObjects.getBounds());
-        }
-    }
-}
+        myPlacemarkWithContent = new ymaps.Placemark([59.31014623775491, 24.424535881434334], {
+            hintContent: 'Собственный значок метки с контентом',
+            balloonContent: 'А эта — новогодняя',
+        }, {
+            // Опции.
+            // Необходимо указать данный тип макета.
+            iconLayout: 'default#imageWithContent',
+            // Своё изображение иконки метки.
+            iconImageHref: 'https://cdn4.iconfinder.com/data/icons/small-n-flat/24/map-marker-512.png',
+            // Размеры метки.
+            iconImageSize: [48, 48],
+            // Смещение левого верхнего угла иконки относительно
+            // её "ножки" (точки привязки).
+            iconImageOffset: [-24, -24],
+            // Смещение слоя с содержимым относительно слоя с картинкой.
+            iconContentOffset: [15, 15],
+            // Макет содержимого.
+            iconContentLayout: MyIconContentLayout
+        });
+
+    myMap.geoObjects
+        .add(myPlacemark)
+        .add(myPlacemarkWithContent);
+});
